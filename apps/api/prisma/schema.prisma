@@ -10,12 +10,142 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Sample {
-  id        Int      @id @default(autoincrement())
-  name      String
-  code      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id                Int                @id @default(autoincrement())
+  email             String             @unique
+  password          String
+  name              String
+  role              UserRole
+  referralCode      String             @unique
+  points            Int                @default(0)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  organizedEvents   Event[]            @relation("OrganizedEvents")
+  attendedEvents    EventAttendee[]
+  reviews           Review[]
+  referredUsers     User[]             @relation("Referrals")
+  referredBy        User?              @relation("Referrals", fields: [referredById], references: [id])
+  referredById      Int?
+  pointTransactions PointTransaction[]
+  discountCoupons   DiscountCoupon[]
+  transactions      Transaction[]
+  purchasedTickets  Ticket[]
+}
 
-  @@map("samples") // if you want to use snake_case format
+enum UserRole {
+  CUSTOMER
+  ORGANIZER
+}
+
+model Event {
+  id           Int             @id @default(autoincrement())
+  name         String
+  description  String
+  date         DateTime
+  location     String
+  category     String
+  isFreeEvent  Boolean
+  capacity     Int
+  organizer    User            @relation("OrganizedEvents", fields: [organizerId], references: [id])
+  organizerId  Int
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  attendees    EventAttendee[]
+  reviews      Review[]
+  promotions   Promotion[]
+  transactions Transaction[]
+  tickets      Ticket[]
+}
+
+model Ticket {
+  id            Int          @id @default(autoincrement())
+  event         Event        @relation(fields: [eventId], references: [id])
+  eventId       Int
+  type          String
+  price         Int
+  quantity      Int
+  description   String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  purchasedBy   User?        @relation(fields: [userId], references: [id])
+  userId        Int?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  transactionId Int?
+}
+
+model EventAttendee {
+  id         Int      @id @default(autoincrement())
+  event      Event    @relation(fields: [eventId], references: [id])
+  eventId    Int
+  attendee   User     @relation(fields: [attendeeId], references: [id])
+  attendeeId Int
+  createdAt  DateTime @default(now())
+
+  @@unique([eventId, attendeeId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([eventId, userId])
+}
+
+model Promotion {
+  id              Int      @id @default(autoincrement())
+  event           Event    @relation(fields: [eventId], references: [id])
+  eventId         Int
+  discountPercent Int
+  startDate       DateTime
+  endDate         DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Transaction {
+  id               Int               @id @default(autoincrement())
+  event            Event             @relation(fields: [eventId], references: [id])
+  eventId          Int
+  user             User              @relation(fields: [userId], references: [id])
+  userId           Int
+  amount           Int
+  discountApplied  Int               @default(0)
+  finalAmount      Int
+  status           TransactionStatus
+  usedReferralCode String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  tickets          Ticket[]
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model PointTransaction {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  points    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model DiscountCoupon {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  code      String   @unique
+  discount  Int
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
