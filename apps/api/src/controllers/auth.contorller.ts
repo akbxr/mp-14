@@ -36,9 +36,9 @@ export class AuthController {
       const newReferralCode = generateReferralCode();
 
       let userData: {
-        email: any;
+        email: string;
         password: string;
-        name: any;
+        name: string;
         role: UserRole;
         referralCode: string;
         referredById?: number;
