@@ -12,8 +12,6 @@ import { PORT } from './config';
 import { AuthRouter } from './routers/auth.router';
 import { PointRouter } from './routers/point.router';
 
-console.log('Database URL:', process.env.DATABASE_URL);
-
 export default class App {
   private app: Express;
 
