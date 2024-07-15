@@ -11,12 +11,6 @@ import cors from 'cors';
 import { PORT } from './config';
 import { AuthRouter } from './routers/auth.router';
 import { PointRouter } from './routers/point.router';
-<<<<<<< HEAD
-
-console.log('Database URL:', process.env.DATABASE_URL);
-=======
->>>>>>> b8d3d40830d66468d2aed4cb215874cd00b655df
-
 export default class App {
   private app: Express;
 
