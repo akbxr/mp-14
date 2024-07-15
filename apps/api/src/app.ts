@@ -11,6 +11,7 @@ import cors from 'cors';
 import { PORT } from './config';
 import { AuthRouter } from './routers/auth.router';
 import { PointRouter } from './routers/point.router';
+
 export default class App {
   private app: Express;
 
