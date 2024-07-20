@@ -1,11 +1,13 @@
 import Hero from '@/components/Hero';
-import EventContent from '@/components/EventContent';
+import FeatureSection from '@/components/Features';
+import NewsletterComponent from '@/components/Newsletter';
 
 export default function Home() {
   return (
     <div>
       <Hero />
-      <EventContent />
+      <FeatureSection />
+      <NewsletterComponent />
     </div>
   );
 }

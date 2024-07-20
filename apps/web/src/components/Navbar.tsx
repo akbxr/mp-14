@@ -23,23 +23,12 @@ const Navbar = () => {
                 >
                   Dashboard
                 </Link>
+
                 <Link
-                  href="/team"
+                  href="/events"
                   className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
                 >
-                  Team
-                </Link>
-                <Link
-                  href="/projects"
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
-                >
-                  Projects
-                </Link>
-                <Link
-                  href="/calendar"
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
-                >
-                  Calendar
+                  Events
                 </Link>
               </div>
             </div>

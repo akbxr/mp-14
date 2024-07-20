@@ -2,16 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-
-interface Event {
-  id: number;
-  title: string;
-  organizer: string;
-  date: string;
-  category: string;
-  price: string;
-  image: string;
-}
+import { events, Event } from '../app/ constants';
 
 const EventContent: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -20,62 +11,6 @@ const EventContent: React.FC = () => {
   const eventsPerPage: number = 6;
 
   // Dummy data
-  const events: Event[] = [
-    {
-      id: 1,
-      title: 'NextJs',
-      organizer: 'Yusuf Chatab',
-      date: 'Tue, Dec 19, 6:48 PM',
-      category: 'Next.js',
-      price: 'FREE',
-      image: '/images/js-mastery.jpg',
-    },
-    {
-      id: 2,
-      title: 'GitHub 2024',
-      organizer: 'Yusuf Chatab',
-      date: 'Thu, Dec 19, 11:25 AM',
-      category: 'Next.js',
-      price: '$999',
-      image: '/images/github-universe.jpg',
-    },
-    {
-      id: 3,
-      title: 'React Conference 2024',
-      organizer: 'React Team',
-      date: 'Sat, Jan 15, 9:00 AM',
-      category: 'React',
-      price: '$599',
-      image: '/images/react-conf.jpg',
-    },
-    {
-      id: 4,
-      title: 'Vue.js Workshop',
-      organizer: 'Vue Masters',
-      date: 'Wed, Feb 1, 2:00 PM',
-      category: 'Vue.js',
-      price: '$299',
-      image: '/images/vue-workshop.jpg',
-    },
-    {
-      id: 5,
-      title: 'Angular Deep Dive',
-      organizer: 'ng-conf',
-      date: 'Mon, Mar 10, 10:00 AM',
-      category: 'Angular',
-      price: '$499',
-      image: '/images/angular-dive.jpg',
-    },
-    {
-      id: 6,
-      title: 'TypeScript Mastery',
-      organizer: 'TS Guru',
-      date: 'Fri, Apr 5, 1:00 PM',
-      category: 'TypeScript',
-      price: '$399',
-      image: '/images/ts-mastery.jpg',
-    },
-  ];
 
   // Filter events based on search term and category
   const filteredEvents: Event[] = events.filter(
@@ -98,7 +33,7 @@ const EventContent: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-center">
-        Trust by Thousands of Events
+        Join thousands at top tech events worldwide.
       </h1>
 
       <div className="flex flex-col md:flex-row justify-between mb-6 space-y-4 md:space-y-0 md:space-x-4">
@@ -145,7 +80,7 @@ const EventContent: React.FC = () => {
               </div>
               <div className="p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
+                  <span className="inline-block bg-indigo-500 text-white text-xs font-semibold px-2 py-1 rounded">
                     {event.price}
                   </span>
                   <span className="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-2 py-1 rounded">
@@ -175,7 +110,7 @@ const EventContent: React.FC = () => {
                 onClick={() => paginate(i + 1)}
                 className={`mx-1 px-3 py-1 rounded ${
                   currentPage === i + 1
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-indigo-500 text-white'
                     : 'bg-gray-200 hover:bg-gray-300'
                 } transition-colors duration-200`}
               >
