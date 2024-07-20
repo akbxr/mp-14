@@ -17,7 +17,7 @@ export default function Hero() {
             </p>
             <div className="items-center gap-x-3 space-y-3 sm:flex sm:space-y-0">
               <Link
-                href="/login"
+                href="/events"
                 className="block py-2 px-4 text-center text-white font-medium bg-indigo-500 duration-150 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-lg hover:shadow-none"
               >
                 Let's get started
@@ -26,7 +26,7 @@ export default function Hero() {
                 href="javascript:void(0)"
                 className="flex items-center justify-center gap-x-2 py-2 px-4 text-gray-700 hover:text-gray-500 font-medium duration-150 active:bg-gray-100 border rounded-lg md:inline-flex"
               >
-                Get access
+                Register
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
