@@ -1,24 +1,28 @@
 "use client";
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(4, { message: "Password must be at least 4 characters long" }),
+  email: z.string().email({ message: 'Invalid email address' }),
+  password: z
+    .string()
+    .min(4, { message: 'Password must be at least 4 characters long' }),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const [error, setError] = useState('');
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   const {
@@ -29,11 +33,19 @@ const Login = () => {
     resolver: zodResolver(loginSchema),
   });
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const onSubmit = async (data: LoginFormData) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/login', data, {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const response = await axios.post(
+        'http://localhost:8000/api/auth/login',
+        data,
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
 
       const responseData = response.data;
       localStorage.setItem('token', responseData.token);
@@ -54,10 +66,16 @@ const Login = () => {
     }
   };
 
+  if (!isClient) {
+    return null;
+  }
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-background">
+    <div className="flex justify-center items-center h-screen bg-background ">
       <div className="w-full max-w-md p-6 bg-card rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-6 text-center">Login</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center text-indigo-500">
+          Login
+        </h1>
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <Label htmlFor="email">Email</Label>
@@ -67,7 +85,11 @@ const Login = () => {
               placeholder="Enter your email"
               {...register('email')}
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
@@ -77,16 +99,23 @@ const Login = () => {
               placeholder="Enter a password"
               {...register('password')}
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
           {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-          <Button type="submit" className="w-full">
+          <Button
+            type="submit"
+            className="w-full bg-indigo-500 hover:bg-indigo-600"
+          >
             Login
           </Button>
         </form>
         <div className="mt-4 text-center text-muted-foreground">
-          Dont have an account?{" "}
-          <Link href="/register" className="text-primary underline">
+          Dont have an account?{' '}
+          <Link href="/register" className="text-indigo-500 underline">
             Register
           </Link>
         </div>
