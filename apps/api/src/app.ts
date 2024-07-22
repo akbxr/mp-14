@@ -13,6 +13,7 @@ import { AuthRouter } from './routers/auth.router';
 import { PointRouter } from './routers/point.router';
 import { DashboardRouter } from './routers/dashboard.router';
 
+
 export default class App {
   private app: Express;
 
