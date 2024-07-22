@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { z } from 'zod';
@@ -24,6 +24,7 @@ type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 export default function RegistrationForm() {
   const [error, setError] = useState('');
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   const {
@@ -44,6 +45,10 @@ export default function RegistrationForm() {
   });
 
   const role = watch('role');
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const onSubmit = async (data: RegistrationFormData) => {
     try {
@@ -69,6 +74,10 @@ export default function RegistrationForm() {
       }
     }
   };
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-background">
