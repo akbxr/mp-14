@@ -77,9 +77,9 @@ export default function RegistrationForm() {
       localStorage.setItem('userRole', responseData.user.role);
 
       if (responseData.user.role === 'ORGANIZER') {
-        router.push('/dashboard');
+        router.push('/login');
       } else {
-        router.push('/');
+        router.push('/login');
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {

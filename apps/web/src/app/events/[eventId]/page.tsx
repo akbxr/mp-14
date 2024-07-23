@@ -1,15 +1,31 @@
 'use client';
 
-import { events } from '../../ constants'; // Adjust the import path as needed
+import { useState } from 'react';
+import { events } from '../../ constants';
 import Image from 'next/image';
+import LoginReminderModal from '../../../components/ui/loginReminder';
+import PaymentModal from '../../../components/ui/paymentModal';
+import { useAuth } from '../../utils/AuthContext';
 
 export default function EventPage({ params }: { params: { eventId: string } }) {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const { isLoggedIn } = useAuth();
+
   const eventId = parseInt(params.eventId, 10);
   const event = events.find((e) => e.id === eventId);
 
   if (!event) {
     return <div className="container mx-auto px-4 py-8">Event not found</div>;
   }
+
+  const handleBuyNow = () => {
+    if (isLoggedIn) {
+      setIsPaymentModalOpen(true);
+    } else {
+      setIsLoginModalOpen(true);
+    }
+  };
 
   return (
     <div className="container px-4 py-10 lg:w-5/6">
@@ -54,10 +70,13 @@ export default function EventPage({ params }: { params: { eventId: string } }) {
               <p className="text-xl font-bold">{event.price}</p>
               <p className="text-sm">Standard Admission</p>
             </div>
-            <button className="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-300">
+            <button
+              onClick={handleBuyNow}
+              className="w-full bg-gray-800 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-300"
+            >
               Buy Now
             </button>
-            <button className="w-full mt-4 bg-indigo-500 text-white py-3 rounded-lg font-semibold hover:bg-indigo   -600 transition duration-300">
+            <button className="w-full mt-4 bg-indigo-500 text-white py-3 rounded-lg font-semibold hover:bg-indigo-600 transition duration-300">
               Add to Calendar
             </button>
           </div>
@@ -89,6 +108,17 @@ export default function EventPage({ params }: { params: { eventId: string } }) {
           </a>
         </div>
       </div>
+
+      <LoginReminderModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        eventTitle={event.title}
+        price={event.price}
+      />
     </div>
   );
 }
