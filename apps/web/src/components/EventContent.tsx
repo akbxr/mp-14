@@ -10,8 +10,6 @@ const EventContent: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const eventsPerPage: number = 6;
 
-  // Dummy data
-
   // Filter events based on search term and category
   const filteredEvents: Event[] = events.filter(
     (event) =>
