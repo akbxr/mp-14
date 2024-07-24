@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+
 const GuardPage = (WrappedComponent: any) => {
   return function WithAuth(props: any) {
     const [isAuthorized, setIsAuthorized] = useState(false);
@@ -27,5 +28,6 @@ const GuardPage = (WrappedComponent: any) => {
     return <WrappedComponent {...props} />;
   };
 };
+
 
 export default GuardPage;

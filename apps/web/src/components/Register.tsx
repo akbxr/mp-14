@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { z } from 'zod';
@@ -36,6 +36,7 @@ type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 export default function RegistrationForm() {
   const [error, setError] = useState('');
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   const {
@@ -57,6 +58,10 @@ export default function RegistrationForm() {
 
   const role = watch('role');
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const onSubmit = async (data: RegistrationFormData) => {
     try {
       const response = await axios.post(
@@ -72,9 +77,9 @@ export default function RegistrationForm() {
       localStorage.setItem('userRole', responseData.user.role);
 
       if (responseData.user.role === 'ORGANIZER') {
-        router.push('/dashboard');
+        router.push('/login');
       } else {
-        router.push('/');
+        router.push('/login');
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
@@ -85,6 +90,10 @@ export default function RegistrationForm() {
       }
     }
   };
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-background">

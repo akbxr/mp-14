@@ -5,11 +5,10 @@ import prisma from '../prisma';
 declare global {
   namespace Express {
     interface Request {
-      user?: User
+      user?: User;
     }
   }
 }
-
 export class PointController {
 
   async addReferralPoints(userId: number) {
