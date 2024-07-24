@@ -38,3 +38,20 @@ export interface Transaction {
     quantity: number;
   }>;
 }
+
+export interface DiscountCoupon {
+  id: number;
+  code: string;
+  discount: number;
+  expiresAt: string;
+  isUsed: boolean;
+}
+
+export interface User {
+  name: string;
+  email: string;
+  role: string;
+  referralCode: string;
+  points: number;
+  discountCoupons: DiscountCoupon[];
+}
