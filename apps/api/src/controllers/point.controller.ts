@@ -1,6 +1,6 @@
 import { PrismaClient, User, UserRole } from '@prisma/client';
 import { Request, Response } from 'express';
-import prisma from '@/prisma';
+import prisma from '../prisma';
 
 declare global {
   namespace Express {
