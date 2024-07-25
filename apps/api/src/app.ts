@@ -13,7 +13,6 @@ import { AuthRouter } from './routers/auth.router';
 import { PointRouter } from './routers/point.router';
 import { DashboardRouter } from './routers/dashboard.router';
 
-
 export default class App {
   private app: Express;
 
@@ -25,7 +24,12 @@ export default class App {
   }
 
   private configure(): void {
-    this.app.use(cors());
+    this.app.use(
+      cors({
+        origin: '*',
+        credentials: true,
+      }),
+    );
     this.app.use(json());
     this.app.use(urlencoded({ extended: true }));
   }
@@ -61,7 +65,6 @@ export default class App {
     this.app.use('/api', pointRouter.getRouter());
     this.app.use('/api', authRouter.getRouter());
     this.app.use('/api', dashboardRouter.getRouter());
-
   }
 
   public start(): void {
