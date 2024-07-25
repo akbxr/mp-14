@@ -14,6 +14,7 @@ export class AuthRouter {
   private initializeRoutes() {
     this.router.post('/auth/login', this.authController.login);
     this.router.post('/auth/register', this.authController.register);
+    this.router.get('/auth/verify/:token', this.authController.verifyEmail);
   }
 
   getRouter(): Router {

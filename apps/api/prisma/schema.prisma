@@ -26,6 +26,8 @@ model User {
   referredUsers     User[]             @relation("Referrals")
   referredBy        User?              @relation("Referrals", fields: [referredById], references: [id])
   referredById      Int?
+  verificationToken String?
+  isVerified        Boolean            @default(false)
   pointTransactions PointTransaction[]
   discountCoupons   DiscountCoupon[]
   transactions      Transaction[]
