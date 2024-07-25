@@ -12,6 +12,8 @@ import { PORT } from './config';
 import { AuthRouter } from './routers/auth.router';
 import { PointRouter } from './routers/point.router';
 import { DashboardRouter } from './routers/dashboard.router';
+import { UserRouter } from './routers/user.router';
+
 
 export default class App {
   private app: Express;
@@ -61,7 +63,9 @@ export default class App {
     const authRouter = new AuthRouter();
     const pointRouter = new PointRouter();
     const dashboardRouter = new DashboardRouter();
+    const userRouter = new UserRouter();
 
+    this.app.use('/api', userRouter.getRouter());
     this.app.use('/api', pointRouter.getRouter());
     this.app.use('/api', authRouter.getRouter());
     this.app.use('/api', dashboardRouter.getRouter());

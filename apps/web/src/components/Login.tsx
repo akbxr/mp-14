@@ -9,7 +9,9 @@ import { useForm } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '../app/utils/AuthContext';
 import Link from 'next/link';
+import { ClipLoader } from 'react-spinners';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address' }),
@@ -23,7 +25,10 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const Login = () => {
   const [error, setError] = useState('');
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const router = useRouter();
+  const { login } = useAuth();
 
   const {
     register,
@@ -38,6 +43,7 @@ const Login = () => {
   }, []);
 
   const onSubmit = async (data: LoginFormData) => {
+    setIsLoading(true);
     try {
       const response = await axios.post(
         'http://localhost:8000/api/auth/login',
@@ -48,8 +54,7 @@ const Login = () => {
       );
 
       const responseData = response.data;
-      localStorage.setItem('token', responseData.token);
-      localStorage.setItem('userRole', responseData.user.role);
+      login(responseData.token, responseData.user.role);
 
       if (responseData.user.role === 'ORGANIZER') {
         router.push('/dashboard');
@@ -63,6 +68,8 @@ const Login = () => {
         console.error(err);
         setError('An error occurred during login');
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -71,55 +78,61 @@ const Login = () => {
   }
 
   return (
-    <div className="flex justify-center items-center h-screen bg-background ">
-      <div className="w-full max-w-md p-6 bg-card rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-6 text-center text-indigo-500">
-          Login
-        </h1>
-        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              {...register('email')}
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter a password"
-              {...register('password')}
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-          {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
-          <Button
-            type="submit"
-            className="w-full bg-indigo-500 hover:bg-indigo-600"
-          >
-            Login
-          </Button>
-        </form>
-        <div className="mt-4 text-center text-muted-foreground">
-          Dont have an account?{' '}
-          <Link href="/register" className="text-indigo-500 underline">
-            Register
-          </Link>
+    <div className="flex justify-center items-center h-screen bg-background">
+      {isLoading ? (
+        <div className="flex justify-center items-center">
+          <ClipLoader size={50} color={'#4A90E2'} loading={isLoading} />
         </div>
-      </div>
+      ) : (
+        <div className="w-full max-w-md p-6 bg-card rounded-lg shadow-lg">
+          <h1 className="text-3xl font-bold mb-6 text-center text-indigo-500">
+            Login
+          </h1>
+          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                {...register('email')}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Enter a password"
+                {...register('password')}
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+            {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
+            <Button
+              type="submit"
+              className="w-full bg-indigo-500 hover:bg-indigo-600"
+            >
+              Login
+            </Button>
+          </form>
+          <div className="mt-4 text-center text-muted-foreground">
+            Dont have an account?{' '}
+            <Link href="/register" className="text-indigo-500 underline">
+              Register
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const GuradPage = (WrappedComponent: any) => {
+
+const GuardPage = (WrappedComponent: any) => {
   return function WithAuth(props: any) {
     const [isAuthorized, setIsAuthorized] = useState(false);
     const router = useRouter();
@@ -28,4 +29,5 @@ const GuradPage = (WrappedComponent: any) => {
   };
 };
 
-export default GuradPage;
+
+export default GuardPage;
