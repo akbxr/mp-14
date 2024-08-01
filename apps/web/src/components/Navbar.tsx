@@ -46,6 +46,12 @@ const Navbar = () => {
                     >
                       Create Event
                     </Link>
+                    <Link
+                      href="/create-event"
+                      className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
+                    >
+                      Past Events
+                    </Link>
                   </>
                 )}
               </div>
@@ -144,6 +150,12 @@ const Navbar = () => {
                   className="block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500 hover:text-white"
                 >
                   Create Event
+                </Link>
+                <Link
+                  href="/create-event"
+                  className="block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500 hover:text-white"
+                >
+                  Past Events
                 </Link>
               </>
             )}
