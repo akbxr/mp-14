@@ -33,6 +33,7 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>({
+    mode: 'onTouched',
     resolver: zodResolver(loginSchema),
   });
 
