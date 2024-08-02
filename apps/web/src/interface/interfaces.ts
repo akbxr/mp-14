@@ -55,3 +55,8 @@ export interface User {
   points: number;
   discountCoupons: DiscountCoupon[];
 }
+
+export interface ChartData {
+  revenue: number;
+  attendees: number;
+}
