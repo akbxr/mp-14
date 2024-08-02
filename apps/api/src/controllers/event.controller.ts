@@ -44,8 +44,8 @@ class EventController {
         },
       });
 
-      // Create tickets for the event
-      if (tickets && tickets.length > 0) {
+      // Create tickets for the event if it's not free
+      if (!isFreeEvent && tickets && tickets.length > 0) {
         await prisma.ticket.createMany({
           data: tickets.map((ticket: any) => ({
             eventId: event.id,
@@ -77,6 +77,7 @@ class EventController {
       return res.status(500).json({ error: 'Failed to create event' });
     }
   }
+
   async getEvents(req: Request, res: Response) {
     try {
       const events = await prisma.event.findMany({
@@ -98,18 +99,19 @@ class EventController {
       const formattedEvents = events.map((event) => ({
         id: event.id,
         name: event.name,
-        date: event.date.toLocaleString(),
+        date: event.date.toISOString(),
         organizer: event.organizer.name,
         price: event.isFreeEvent
-          ? 'FREE'
-          : `$${Math.min(...event.tickets.map((t) => t.price))}`,
+          ? 0
+          : Math.min(...event.tickets.map((t) => t.price)),
         category: event.category,
+        isFreeEvent: event.isFreeEvent,
         promotion:
           event.promotions.length > 0
             ? {
                 discountPercent: event.promotions[0].discountPercent,
-                startDate: event.promotions[0].startDate.toLocaleString(),
-                endDate: event.promotions[0].endDate.toLocaleString(),
+                startDate: event.promotions[0].startDate.toISOString(),
+                endDate: event.promotions[0].endDate.toISOString(),
               }
             : null,
       }));
@@ -118,6 +120,57 @@ class EventController {
     } catch (error) {
       console.error('Error fetching events:', error);
       return res.status(500).json({ error: 'Failed to fetch events' });
+    }
+  }
+
+  async getEventById(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const event = await prisma.event.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          organizer: {
+            select: {
+              name: true,
+            },
+          },
+          tickets: {
+            select: {
+              type: true,
+              price: true,
+              quantity: true,
+              description: true,
+            },
+          },
+        },
+      });
+
+      if (!event) {
+        return res.status(404).json({ error: 'Event not found' });
+      }
+
+      const formattedEvent = {
+        id: event.id,
+        name: event.name,
+        date: event.date.toISOString(),
+        organizer: event.organizer.name,
+        category: event.category,
+        description: event.description,
+        location: event.location,
+        capacity: event.capacity,
+        isFreeEvent: event.isFreeEvent,
+        tickets: event.tickets.map((ticket) => ({
+          type: ticket.type,
+          price: ticket.price,
+          quantity: ticket.quantity,
+          description: ticket.description,
+        })),
+      };
+
+      return res.status(200).json(formattedEvent);
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      return res.status(500).json({ error: 'Failed to fetch event' });
     }
   }
 }

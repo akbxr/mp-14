@@ -7,7 +7,7 @@ interface Event {
   name: string;
   date: string;
   organizer: string;
-  price: string;
+  price: string | number;
   category: string;
 }
 
@@ -40,9 +40,27 @@ const EventContent: React.FC = () => {
     fetchEvents();
   }, []);
 
-  const formatToRupiah = (price: string): string => {
-    if (price === 'FREE') return 'GRATIS';
-    return `Rp ${parseFloat(price.replace('$', '')).toLocaleString('id-ID')}`;
+  const formatToRupiah = (price: string | number): string => {
+    if (typeof price === 'string') {
+      if (price === 'FREE') return 'GRATIS';
+      return `Rp ${parseFloat(price.replace('$', '')).toLocaleString('id-ID')}`;
+    }
+    if (typeof price === 'number') {
+      if (price === 0) return 'GRATIS';
+      return `Rp ${price.toLocaleString('id-ID')}`;
+    }
+    return 'Invalid Price';
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date
+      .toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+      })
+      .replace(/\//g, '/');
   };
 
   // Filter events based on search term and category
@@ -115,7 +133,7 @@ const EventContent: React.FC = () => {
                 <h2 className="text-lg font-semibold mb-1 truncate">
                   {event.name}
                 </h2>
-                <p className="text-sm mb-1">{event.date}</p>
+                <p className="text-sm mb-1">{formatDate(event.date)}</p>
                 <p className="text-sm truncate">{event.organizer}</p>
               </div>
             </div>
