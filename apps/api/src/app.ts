@@ -12,6 +12,7 @@ import { PORT } from './config';
 import { AuthRouter } from './routers/auth.router';
 import { PointRouter } from './routers/point.router';
 import { DashboardRouter } from './routers/dashboard.router';
+import { UserRouter } from './routers/user.router';
 import { EventRouter } from './routers/event.router';
 import { TransactionRouter } from './routers/transaction.router';
 
@@ -26,7 +27,12 @@ export default class App {
   }
 
   private configure(): void {
-    this.app.use(cors());
+    this.app.use(
+      cors({
+        origin: '*',
+        credentials: true,
+      }),
+    );
     this.app.use(json());
     this.app.use(urlencoded({ extended: true }));
   }
@@ -60,7 +66,9 @@ export default class App {
     const dashboardRouter = new DashboardRouter();
     const eventRouter = new EventRouter();
     const transactionRouter = new TransactionRouter();
+    const userRouter = new UserRouter();
 
+    this.app.use('/api', userRouter.getRouter());
     this.app.use('/api', pointRouter.getRouter());
     this.app.use('/api', authRouter.getRouter());
     this.app.use('/api', dashboardRouter.getRouter());

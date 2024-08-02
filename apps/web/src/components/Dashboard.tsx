@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import withAuth from '@/components/Guard';
 import axios from 'axios';
 import { XAxis, CartesianGrid } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -33,7 +32,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Event, Registration, Transaction } from "@/interface/interfaces";
-import GuradPage from '@/components/Guard';
+import GuardPage from '@/components/Guard';
+
 
 
 
@@ -355,4 +355,4 @@ const EventManagementDashboard: React.FC = () => {
   );
 };
 
-export default GuradPage(EventManagementDashboard);
+export default GuardPage(EventManagementDashboard);

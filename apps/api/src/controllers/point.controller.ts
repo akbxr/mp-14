@@ -1,6 +1,6 @@
 import { PrismaClient, User, UserRole } from '@prisma/client';
 import { Request, Response } from 'express';
-import prisma from '@/prisma';
+import prisma from '../prisma';
 
 declare global {
   namespace Express {
@@ -33,7 +33,6 @@ export class PointController {
           where: { id: userId },
           data: { points: { increment: points } },
         });
-        console.log(`User points updated. New total: ${updatedUser.points}`);
       });
 
       console.log(`Successfully added ${points} points to user ${userId}`);

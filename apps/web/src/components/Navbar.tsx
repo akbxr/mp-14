@@ -15,7 +15,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className=" text-gray-800">
+    <nav className="text-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -46,12 +46,6 @@ const Navbar = () => {
                     >
                       Create Event
                     </Link>
-                    <Link
-                      href="/create-event"
-                      className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
-                    >
-                      Past Events
-                    </Link>
                   </>
                 )}
               </div>
@@ -60,12 +54,20 @@ const Navbar = () => {
           <div className="hidden md:block">
             <div className="ml-4 flex items-center md:ml-6 text-gray-800">
               {isLoggedIn ? (
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
-                >
-                  Sign Out
-                </button>
+                <>
+                  <Link
+                    href="/profile"
+                    className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-500 hover:text-white"
+                  >
+                    Sign Out
+                  </button>
+                </>
               ) : (
                 <>
                   <Link
@@ -151,21 +153,23 @@ const Navbar = () => {
                 >
                   Create Event
                 </Link>
-                <Link
-                  href="/create-event"
-                  className="block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500 hover:text-white"
-                >
-                  Past Events
-                </Link>
               </>
             )}
             {isLoggedIn ? (
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500 hover:text-white"
-              >
-                Sign Out
-              </button>
+              <>
+                <Link
+                  href="/profile"
+                  className="block px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500 hover:text-white"
+                >
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-indigo-500 hover:text-white"
+                >
+                  Sign Out
+                </button>
+              </>
             ) : (
               <>
                 <Link
