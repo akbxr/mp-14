@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { z } from 'zod';
@@ -24,9 +24,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const [error, setError] = useState('');
-  const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
   const router = useRouter();
   const { login } = useAuth();
 
@@ -37,10 +35,6 @@ const Login = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -72,10 +66,6 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <div className="flex justify-center items-center h-screen bg-background">

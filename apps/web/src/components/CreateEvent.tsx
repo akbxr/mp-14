@@ -1,59 +1,70 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
-import { useDropzone } from 'react-dropzone';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '../app/utils/AuthContext';
+import axios from 'axios';
 
-const MAX_FILE_SIZE = 5000000; // 5MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const CATEGORIES = [
+  { value: 'Music', label: 'Music' },
+  { value: 'Technology', label: 'Technology' },
+  { value: 'Sports', label: 'Sports' },
+  { value: 'Arts', label: 'Arts & Culture' },
+  { value: 'Food', label: 'Food & Drink' },
+  { value: 'Business', label: 'Business' },
+];
 
 const eventSchema = z.object({
-  eventName: z
-    .string()
-    .min(2, { message: 'Event name must be at least 2 characters long' }),
+  name: z.string().min(3, 'Event name must be at least 3 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
   date: z.date(),
-  time: z.string(),
-  location: z
-    .string()
-    .min(2, { message: 'Location must be at least 2 characters long' }),
-  description: z
-    .string()
-    .min(10, { message: 'Description must be at least 10 characters long' }),
-  availableSeats: z
-    .number()
-    .min(1, { message: 'Must have at least 1 available seat' }),
-  isPaid: z.boolean(),
-  price: z.number().min(0).optional(),
-  ticketTypes: z.array(
-    z.object({
-      name: z.string().min(1, { message: 'Ticket name is required' }),
-      price: z.number().min(0, { message: 'Price must be 0 or greater' }),
-      quantity: z.number().min(1, { message: 'Quantity must be at least 1' }),
-    }),
-  ),
-  promotions: z.object({
-    referralDiscount: z.number().min(0),
-    referralLimit: z.number().min(0),
-    earlyBirdDiscount: z.number().min(0),
-    earlyBirdDate: z.date(),
-  }),
+  location: z.string().min(3, 'Location must be at least 3 characters'),
+  category: z.enum([
+    'Music',
+    'Technology',
+    'Sports',
+    'Arts',
+    'Food',
+    'Business',
+  ]),
+  isFreeEvent: z.boolean(),
+  capacity: z.number().positive('Capacity must be a positive number'),
+  tickets: z
+    .array(
+      z.object({
+        type: z.string().min(3, 'Ticket type must be at least 3 characters'),
+        price: z.number().nonnegative('Price must be a non-negative number'),
+        quantity: z.number().positive('Quantity must be a positive number'),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
+  promotion: z
+    .object({
+      discountPercent: z
+        .number()
+        .min(0, 'Discount percent must be at least 0')
+        .max(100, 'Discount percent cannot exceed 100'),
+      startDate: z.date(),
+      endDate: z.date(),
+    })
+    .optional(),
 });
 
 type EventForm = z.infer<typeof eventSchema>;
 
 const CreateEvent: React.FC = () => {
   const [error, setError] = useState('');
-  const [organizerImage, setOrganizerImage] = useState<File | null>(null);
   const router = useRouter();
+  const { isLoggedIn, userRole } = useAuth();
 
   const {
     register,
@@ -65,74 +76,53 @@ const CreateEvent: React.FC = () => {
   } = useForm<EventForm>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      isPaid: false,
-      ticketTypes: [{ name: '', price: 0, quantity: 0 }],
-      promotions: {
-        referralDiscount: 0,
-        referralLimit: 0,
-        earlyBirdDiscount: 0,
-        earlyBirdDate: new Date(),
-      },
+      name: '',
+      description: '',
+      date: new Date(),
+      location: '',
+      category: 'Music',
+      isFreeEvent: false,
+      capacity: 0,
+      tickets: [{ type: '', price: 0, quantity: 0, description: '' }],
     },
   });
 
-  const isPaid = watch('isPaid');
+  const isFreeEvent = watch('isFreeEvent');
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (
-      file &&
-      file.size <= MAX_FILE_SIZE &&
-      ACCEPTED_IMAGE_TYPES.includes(file.type)
-    ) {
-      setOrganizerImage(file);
-      setError(''); // Clear any previous errors
-    } else {
-      setError(
-        'Invalid file. Please upload an image (jpg, png, webp) less than 5MB.',
-      );
-      setOrganizerImage(null); // Clear the invalid image
+  useEffect(() => {
+    if (isFreeEvent) {
+      setValue('tickets', undefined);
+    } else if (!watch('tickets')) {
+      setValue('tickets', [
+        { type: '', price: 0, quantity: 0, description: '' },
+      ]);
     }
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.webp'],
-    },
-    maxFiles: 1,
-    multiple: false,
-  });
+  }, [isFreeEvent, setValue, watch]);
 
   const onSubmit = async (data: EventForm) => {
     try {
-      const formData = new FormData();
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === 'organizerImage') {
-          if (organizerImage) {
-            formData.append(key, organizerImage);
-          }
-        } else if (typeof value === 'object') {
-          formData.append(key, JSON.stringify(value));
-        } else {
-          formData.append(key, value.toString());
-        }
-      });
+      const token = localStorage.getItem('token');
+      const eventData = {
+        ...data,
+        tickets: isFreeEvent ? undefined : data.tickets,
+      };
 
       const response = await axios.post(
-        'http://localhost:8000/api/events/create',
-        formData,
+        'http://localhost:8000/api/create-event',
+        eventData,
         {
-          headers: { 'Content-Type': 'multipart/form-data' },
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
         },
       );
 
-      const responseData = response.data;
-      console.log('Event created:', responseData);
-      router.push('/dashboard'); // Redirect to dashboard or event list page
+      console.log('Event created:', response.data);
+      router.push('/dashboard');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
-        setError(err.response.data.message || 'Event creation failed');
+        setError(err.response.data.error || 'Event creation failed');
       } else {
         console.error(err);
         setError('An error occurred during event creation');
@@ -140,12 +130,23 @@ const CreateEvent: React.FC = () => {
     }
   };
 
-  const addTicketType = () => {
-    setValue('ticketTypes', [
-      ...watch('ticketTypes'),
-      { name: '', price: 0, quantity: 0 },
+  const addTicket = () => {
+    const currentTickets = watch('tickets') || [];
+    setValue('tickets', [
+      ...currentTickets,
+      { type: '', price: 0, quantity: 0, description: '' },
     ]);
   };
+
+  if (!isLoggedIn || userRole !== 'ORGANIZER') {
+    return (
+      <div className="min-h-screen bg-background p-8 text-center">
+        <div className="text-red-500 text-lg mt-4">
+          You must be logged in as an organizer to create an event.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -159,18 +160,18 @@ const CreateEvent: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <div>
-              <Label htmlFor="eventName" className="text-lg">
+              <Label htmlFor="name" className="text-lg">
                 Event Name
               </Label>
               <Input
-                id="eventName"
-                {...register('eventName')}
+                id="name"
+                {...register('name')}
                 placeholder="Enter event name"
                 className="mt-1"
               />
-              {errors.eventName && (
+              {errors.name && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.eventName.message}
+                  {errors.name.message}
                 </p>
               )}
             </div>
@@ -198,25 +199,6 @@ const CreateEvent: React.FC = () => {
             </div>
 
             <div>
-              <Label htmlFor="time" className="text-lg">
-                Time
-              </Label>
-              <Input
-                id="time"
-                type="time"
-                {...register('time')}
-                className="mt-1"
-              />
-              {errors.time && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.time.message}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
               <Label htmlFor="location" className="text-lg">
                 Location
               </Label>
@@ -229,6 +211,30 @@ const CreateEvent: React.FC = () => {
               {errors.location && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.location.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="category" className="text-lg">
+                Category
+              </Label>
+              <select
+                id="category"
+                {...register('category')}
+                className="w-full p-2 border rounded mt-1"
+              >
+                {CATEGORIES.map((category) => (
+                  <option key={category.value} value={category.value}>
+                    {category.label}
+                  </option>
+                ))}
+              </select>
+              {errors.category && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.category.message}
                 </p>
               )}
             </div>
@@ -252,19 +258,19 @@ const CreateEvent: React.FC = () => {
             </div>
 
             <div>
-              <Label htmlFor="availableSeats" className="text-lg">
-                Available Seats
+              <Label htmlFor="capacity" className="text-lg">
+                Capacity
               </Label>
               <Input
-                id="availableSeats"
+                id="capacity"
                 type="number"
-                {...register('availableSeats', { valueAsNumber: true })}
-                placeholder="Enter number of available seats"
+                {...register('capacity', { valueAsNumber: true })}
+                placeholder="Enter event capacity"
                 className="mt-1"
               />
-              {errors.availableSeats && (
+              {errors.capacity && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.availableSeats.message}
+                  {errors.capacity.message}
                 </p>
               )}
             </div>
@@ -273,108 +279,106 @@ const CreateEvent: React.FC = () => {
 
         <div className="space-y-4">
           <label className="flex items-center text-lg">
-            <input type="checkbox" {...register('isPaid')} className="mr-2" />
-            Is this a paid event?
+            <input
+              type="checkbox"
+              {...register('isFreeEvent')}
+              className="mr-2"
+            />
+            Is this a free event?
           </label>
-
-          {isPaid && (
-            <div>
-              <Label htmlFor="price" className="text-lg">
-                Price (IDR)
-              </Label>
-              <Input
-                id="price"
-                type="number"
-                {...register('price', { valueAsNumber: true })}
-                placeholder="Enter event price"
-                className="mt-1"
-              />
-              {errors.price && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.price.message}
-                </p>
-              )}
-            </div>
-          )}
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-2xl font-bold">Ticket Types</h3>
-          {watch('ticketTypes').map((_, index) => (
-            <div key={index} className="grid grid-cols-3 gap-4">
-              <Input
-                {...register(`ticketTypes.${index}.name` as const)}
-                placeholder="Ticket Name"
-              />
-              <Input
-                type="number"
-                {...register(`ticketTypes.${index}.price` as const, {
-                  valueAsNumber: true,
-                })}
-                placeholder="Price (IDR)"
-              />
-              <Input
-                type="number"
-                {...register(`ticketTypes.${index}.quantity` as const, {
-                  valueAsNumber: true,
-                })}
-                placeholder="Quantity"
-              />
-            </div>
-          ))}
-          <Button type="button" onClick={addTicketType} variant="outline">
-            Add Ticket Type
-          </Button>
-        </div>
+        {!isFreeEvent && (
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold">Tickets</h3>
+            {watch('tickets')?.map((_, index) => (
+              <div key={index} className="grid grid-cols-4 gap-4">
+                <div>
+                  <Label htmlFor={`tickets.${index}.type`}>Ticket Type</Label>
+                  <Input
+                    id={`tickets.${index}.type`}
+                    {...register(`tickets.${index}.type`)}
+                    placeholder="Ticket Type"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`tickets.${index}.price`}>Price</Label>
+                  <Input
+                    id={`tickets.${index}.price`}
+                    type="number"
+                    {...register(`tickets.${index}.price`, {
+                      valueAsNumber: true,
+                    })}
+                    placeholder="Price"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`tickets.${index}.quantity`}>Quantity</Label>
+                  <Input
+                    id={`tickets.${index}.quantity`}
+                    type="number"
+                    {...register(`tickets.${index}.quantity`, {
+                      valueAsNumber: true,
+                    })}
+                    placeholder="Quantity"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`tickets.${index}.description`}>
+                    Description (optional)
+                  </Label>
+                  <Input
+                    id={`tickets.${index}.description`}
+                    {...register(`tickets.${index}.description`)}
+                    placeholder="Description (optional)"
+                  />
+                </div>
+              </div>
+            ))}
+            <Button type="button" onClick={addTicket} variant="outline">
+              Add Ticket
+            </Button>
+          </div>
+        )}
 
         <div className="space-y-6">
-          <h3 className="text-2xl font-bold">Promotions</h3>
+          <h3 className="text-2xl font-bold">Promotion (Optional)</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <Label htmlFor="referralDiscount" className="text-lg">
-                Referral Discount (IDR)
+              <Label htmlFor="discountPercent" className="text-lg">
+                Discount Percent
               </Label>
               <Input
-                id="referralDiscount"
+                id="discountPercent"
                 type="number"
-                {...register('promotions.referralDiscount', {
+                {...register('promotion.discountPercent', {
                   valueAsNumber: true,
                 })}
                 className="mt-1"
               />
             </div>
             <div>
-              <Label htmlFor="referralLimit" className="text-lg">
-                Referral Limit
-              </Label>
-              <Input
-                id="referralLimit"
-                type="number"
-                {...register('promotions.referralLimit', {
-                  valueAsNumber: true,
-                })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="earlyBirdDiscount" className="text-lg">
-                Early Bird Discount (IDR)
-              </Label>
-              <Input
-                id="earlyBirdDiscount"
-                type="number"
-                {...register('promotions.earlyBirdDiscount', {
-                  valueAsNumber: true,
-                })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="earlyBirdDate" className="text-lg">
-                Early Bird Date
+              <Label htmlFor="startDate" className="text-lg">
+                Start Date
               </Label>
               <Controller
-                name="promotions.earlyBirdDate"
+                name="promotion.startDate"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    selected={field.value}
+                    onChange={(date: Date | null) => field.onChange(date)}
+                    className="w-full p-2 border rounded mt-1"
+                  />
+                )}
+              />
+            </div>
+            <div>
+              <Label htmlFor="endDate" className="text-lg">
+                End Date
+              </Label>
+              <Controller
+                name="promotion.endDate"
                 control={control}
                 render={({ field }) => (
                   <DatePicker
@@ -386,36 +390,6 @@ const CreateEvent: React.FC = () => {
               />
             </div>
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <Label htmlFor="organizerImage" className="text-lg">
-            Organizer Image
-          </Label>
-          <div
-            {...getRootProps()}
-            className="border-2 border-dashed border-gray-300 rounded-lg p-6 cursor-pointer hover:border-indigo-500 transition duration-300"
-          >
-            <input {...getInputProps()} />
-            {isDragActive ? (
-              <p className="text-center">Drop the image here ...</p>
-            ) : (
-              <p className="text-center">
-                Drag 'n' drop an image here, or click to select an image
-              </p>
-            )}
-          </div>
-          {organizerImage && (
-            <div className="mt-4">
-              <p>Selected file: {organizerImage.name}</p>
-              <img
-                src={URL.createObjectURL(organizerImage)}
-                alt="Preview"
-                className="mt-2 max-w-full h-auto"
-              />
-            </div>
-          )}
-          {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
         </div>
 
         {error && <div className="text-red-500 text-sm mt-4">{error}</div>}

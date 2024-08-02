@@ -2,10 +2,10 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const generateReferralCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
+const generateReferralCode = () =>
+  Math.random().toString(36).substring(2, 8).toUpperCase();
 
 export class DiscountController {
-
   async createDiscountCoupon(userId: number) {
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + 3); // Coupon expires after 3 months
@@ -22,7 +22,9 @@ export class DiscountController {
         },
       });
 
-      console.log(`Created discount coupon for user ${userId}: ${JSON.stringify(coupon)}`);
+      console.log(
+        `Created discount coupon for user ${userId}: ${JSON.stringify(coupon)}`,
+      );
     } catch (error) {
       console.error('Error creating discount coupon:', error);
       throw error;
