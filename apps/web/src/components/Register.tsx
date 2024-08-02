@@ -37,6 +37,7 @@ type RegistrationFormData = z.infer<typeof registrationSchema>;
 export default function RegistrationForm() {
   const [error, setError] = useState('');
   const [isClient, setIsClient] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
 
   const {
@@ -64,24 +65,17 @@ export default function RegistrationForm() {
   }, []);
 
   const onSubmit = async (data: RegistrationFormData) => {
+    setIsSubmitting(true);
+    setError('');
     try {
       const response = await axios.post(
-        'http://localhost:8000/api/auth/register',
+        `${process.env.NEXT_PUBLIC_BASE_API_URL}/auth/register`,
         data,
         {
           headers: { 'Content-Type': 'application/json' },
         },
       );
-
-      const responseData = response.data;
-      localStorage.setItem('token', responseData.token);
-      localStorage.setItem('userRole', responseData.user.role);
-
-      if (responseData.user.role === 'ORGANIZER') {
-        router.push('/login');
-      } else {
-        router.push('/login');
-      }
+      router.push('/register-success');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.message || 'Registration failed');
@@ -89,6 +83,8 @@ export default function RegistrationForm() {
         console.error(err);
         setError('An error occurred during registration');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -176,8 +172,9 @@ export default function RegistrationForm() {
           <Button
             type="submit"
             className="w-full bg-indigo-500 hover:bg-indigo-600"
+            disabled={isSubmitting}
           >
-            Register
+            {isSubmitting ? 'Registering...' : 'Register'}
           </Button>
         </form>
         <div className="mt-4 text-center text-muted-foreground">

@@ -1,19 +1,72 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { events, Event } from '../app/ constants';
+
+interface Event {
+  id: string;
+  name: string;
+  date: string;
+  organizer: string;
+  price: string | number;
+  category: string;
+}
+
+const CATEGORIES = [
+  { value: 'Music', label: 'Music' },
+  { value: 'Tech', label: 'Technology' },
+  { value: 'Sports', label: 'Sports' },
+  { value: 'Arts', label: 'Arts & Culture' },
+  { value: 'Food', label: 'Food & Drink' },
+  { value: 'Business', label: 'Business' },
+];
 
 const EventContent: React.FC = () => {
+  const [events, setEvents] = useState<Event[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const eventsPerPage: number = 6;
 
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/get-events');
+        const data = await response.json();
+        setEvents(data);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const formatToRupiah = (price: string | number): string => {
+    if (typeof price === 'string') {
+      if (price === 'FREE') return 'GRATIS';
+      return `Rp ${parseFloat(price.replace('$', '')).toLocaleString('id-ID')}`;
+    }
+    if (typeof price === 'number') {
+      if (price === 0) return 'GRATIS';
+      return `Rp ${price.toLocaleString('id-ID')}`;
+    }
+    return 'Invalid Price';
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date
+      .toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+      })
+      .replace(/\//g, '/');
+  };
+
   // Filter events based on search term and category
   const filteredEvents: Event[] = events.filter(
     (event) =>
-      (event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (event.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         event.organizer.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (selectedCategory === 'All' || event.category === selectedCategory),
   );
@@ -31,7 +84,7 @@ const EventContent: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-center">
-        Join thousands at top tech events worldwide.
+        Join thousands at top events worldwide.
       </h1>
 
       <div className="flex flex-col md:flex-row justify-between mb-6 space-y-4 md:space-y-0 md:space-x-4">
@@ -55,11 +108,11 @@ const EventContent: React.FC = () => {
             }
           >
             <option value="All">All Categories</option>
-            <option value="Next.js">Next.js</option>
-            <option value="React">React</option>
-            <option value="Vue.js">Vue.js</option>
-            <option value="Angular">Angular</option>
-            <option value="TypeScript">TypeScript</option>
+            {CATEGORIES.map((category) => (
+              <option key={category.value} value={category.value}>
+                {category.label}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -67,31 +120,21 @@ const EventContent: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {currentEvents.map((event: Event) => (
           <Link href={`/events/${event.id}`} key={event.id}>
-            <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer">
-              <div className="relative w-full h-40">
-                <Image
-                  src={event.image}
-                  alt={event.title}
-                  layout="fill"
-                  objectFit="cover"
-                />
-              </div>
-              <div className="p-4">
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer">
+              <div className="p-4 text-white">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="inline-block bg-indigo-500 text-white text-xs font-semibold px-2 py-1 rounded">
-                    {event.price}
+                  <span className="inline-block bg-white text-indigo-500 text-xs font-semibold px-2 py-1 rounded">
+                    {formatToRupiah(event.price)}
                   </span>
-                  <span className="inline-block bg-gray-100 text-gray-800 text-xs font-semibold px-2 py-1 rounded">
+                  <span className="inline-block bg-gray-200 text-gray-800 text-xs font-semibold px-2 py-1 rounded">
                     {event.category}
                   </span>
                 </div>
                 <h2 className="text-lg font-semibold mb-1 truncate">
-                  {event.title}
+                  {event.name}
                 </h2>
-                <p className="text-sm text-gray-600 mb-1">{event.date}</p>
-                <p className="text-sm text-gray-500 truncate">
-                  {event.organizer}
-                </p>
+                <p className="text-sm mb-1">{formatDate(event.date)}</p>
+                <p className="text-sm truncate">{event.organizer}</p>
               </div>
             </div>
           </Link>

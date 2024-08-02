@@ -33,7 +33,6 @@ export class PointController {
           where: { id: userId },
           data: { points: { increment: points } },
         });
-        console.log(`User points updated. New total: ${updatedUser.points}`);
       });
 
       console.log(`Successfully added ${points} points to user ${userId}`);
