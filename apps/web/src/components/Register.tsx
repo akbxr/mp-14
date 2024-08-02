@@ -48,6 +48,7 @@ export default function RegistrationForm() {
     watch,
   } = useForm<RegistrationFormData>({
     resolver: zodResolver(registrationSchema),
+    mode: 'onTouched',
     defaultValues: {
       name: '',
       email: '',
